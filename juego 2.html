@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-Héroes: Salvando el Planeta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #00b894 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 255, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 120, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .title {
+            font-size: 2.8em;
+            background: linear-gradient(45deg, #00b894, #00cec9, #74b9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: rainbow 3s infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(180deg); }
+        }
+
+        .game-screen {
+            display: none;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .earth-character {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00b894, #00cec9, #74b9ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            animation: earthSpin 4s linear infinite;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .earth-character::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shine 2s infinite;
+        }
+
+        @keyframes earthSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mission-card {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+            font-size: 1.3em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            border-radius: 22px;
+            z-index: -1;
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .action-card {
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border-color: #00b894;
+        }
+
+        .action-card.correct {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            color: white;
+            border-color: #00b894;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .action-card.incorrect {
+            background: linear-gradient(135deg, #e17055, #fab1a0);
+            color: white;
+            border-color: #e17055;
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .action-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .score-board {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            font-size: 1.2em;
+        }
+
+        .score-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+
+        .feedback {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 15px;
+            animation: bounceIn 0.6s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-feedback {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            color: white;
+        }
+
+        .error-feedback {
+            background: linear-gradient(135deg, #e17055, #fab1a0);
+            color: white;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9, #74b9ff);
+            transition: width 0.8s ease;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: progressShine 2s infinite;
+        }
+
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .final-celebration {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .celebration-emoji {
+            font-size: 5em;
+            animation: celebrate 1s infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.2) rotate(5deg); }
+        }
+
+        .earth-health {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 1.3em;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #00b894);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .game-info {
+            background: rgba(116, 185, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #74b9ff;
+            text-align: left;
+        }
+
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00b894;
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="game-container">
+        <!-- Pantalla de Bienvenida -->
+        <div id="welcome-screen" class="game-screen active">
+            <h1 class="title">🌍 Eco-Héroes: Salvando el Planeta 🌱</h1>
+            <div class="earth-character">🌍</div>
+            <div class="game-info">
+                <h3>¡Conviértete en un Eco-Héroe!</h3>
+                <p>Nuestro planeta Tierra necesita tu ayuda. Aprende sobre el medio ambiente, los animales, las plantas y cómo cuidar nuestro hogar mientras te diviertes resolviendo misiones ecológicas.</p>
+                <p><strong>¿Estás listo para salvar el mundo?</strong></p>
+            </div>
+            <button class="btn" onclick="startGame()">🚀 ¡Comenzar Misión!</button>
+            <button class="btn" onclick="showInstructions()">📖 ¿Cómo Jugar?</button>
+        </div>
+
+        <!-- Pantalla de Instrucciones -->
+        <div id="instructions-screen" class="game-screen">
+            <h2>📖 Manual del Eco-Héroe</h2>
+            <div class="game-info">
+                <h3>🎯 Tu Misión:</h3>
+                <p><strong>1.</strong> Completa 8 misiones ecológicas diferentes</p>
+                <p><strong>2.</strong> Elige las acciones correctas para ayudar al planeta</p>
+                <p><strong>3.</strong> Gana puntos de "Salud Planetaria" con cada buena decisión</p>
+                <p><strong>4.</strong> Aprende datos increíbles sobre la naturaleza</p>
+                <p><strong>5.</strong> ¡Conviértete en un verdadero Eco-Héroe!</p>
+                
+                <h3>🌟 Datos Curiosos que Aprenderás:</h3>
+                <p>• Animales en peligro de extinción</p>
+                <p>• Cómo reciclar y cuidar el agua</p>
+                <p>• Plantas increíbles y sus superpoderes</p>
+                <p>• Energías renovables y limpias</p>
+            </div>
+            <button class="btn" onclick="showWelcome()">⬅️ Regresar</button>
+            <button class="btn" onclick="startGame()">🌍 ¡Salvar el Planeta!</button>
+        </div>
+
+        <!-- Pantalla del Juego -->
+        <div id="game-screen" class="game-screen">
+            <div class="score-board">
+                <div class="score-item">
+                    <div>🌟 Puntos</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="score-item">
+                    <div>🎯 Misión</div>
+                    <div><span id="current-mission">1</span>/8</div>
+                </div>
+                <div class="score-item">
+                    <div>🏆 Logros</div>
+                    <div id="achievements">0</div>
+                </div>
+            </div>
+
+            <div class="earth-health">
+                <span>🌍 Salud del Planeta:</span>
+                <div class="health-bar">
+                    <div class="health-fill" id="planet-health" style="width: 50%;"></div>
+                </div>
+                <span id="health-percentage">50%</span>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+            </div>
+
+            <div class="earth-character" id="game-earth">🌍</div>
+            
+            <div class="mission-card">
+                <div id="mission-text">Cargando misión...</div>
+            </div>
+            
+            <div class="actions-grid" id="actions-container">
+                <!-- Las acciones se generarán dinámicamente -->
+            </div>
+            
+            <div id="feedback" class="feedback" style="display: none;"></div>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="results-screen" class="game-screen">
+            <div class="celebration-emoji">🏆</div>
+            <h2>¡Misión Completada, Eco-Héroe!</h2>
+            
+            <div class="earth-health">
+                <span>🌍 Salud Final del Planeta:</span>
+                <div class="health-bar">
+                    <div class="health-fill" id="final-planet-health"></div>
+                </div>
+                <span id="final-health-percentage">0%</span>
+            </div>
+
+            <div class="score-board">
+                <div class="score-item">
+                    <div>Puntuación Final</div>
+                    <div id="final-score">0</div>
+                </div>
+                <div class="score-item">
+                    <div>Logros Obtenidos</div>
+                    <div id="final-achievements">0</div>
+                </div>
+                <div class="score-item">
+                    <div>Rango Eco-Héroe</div>
+                    <div id="eco-rank">Novato</div>
+                </div>
+            </div>
+
+            <div id="final-message" class="game-info">
+                <!-- El mensaje final se mostrará aquí -->
+            </div>
+
+            <button class="btn" onclick="restartGame()">🔄 Nueva Misión</button>
+            <button class="btn" onclick="showWelcome()">🏠 Inicio</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMission = 0;
+        let score = 0;
+        let achievements = 0;
+        let planetHealth = 50;
+        let missions = [];
+
+        // Banco de misiones ecológicas
+        const missionBank = [
+            {
+                situation: "🐧 Los pingüinos en la Antártida están perdiendo su hogar porque el hielo se está derritiendo. ¿Qué podemos hacer para ayudarlos?",
+                actions: [
+                    { text: "Usar menos electricidad en casa", icon: "💡", correct: true },
+                    { text: "Comprar más juguetes de plástico", icon: "🧸", correct: false },
+                    { text: "Caminar o usar bicicleta", icon: "🚲", correct: true },
+                    { text: "Dejar las luces encendidas", icon: "🔆", correct: false }
+                ],
+                funFact: "¡Los pingüinos pueden saltar hasta 3 metros de altura! Pero necesitan hielo para vivir."
+            },
+            {
+                situation: "🌳 Los árboles del bosque están siendo cortados muy rápido. ¿Cómo podemos proteger los bosques?",
+                actions: [
+                    { text: "Reciclar papel y cartón", icon: "📄", correct: true },
+                    { text: "Usar más papel del necesario", icon: "🗞️", correct: false },
+                    { text: "Plantar nuevos árboles", icon: "🌱", correct: true },
+                    { text: "Tirar basura en el bosque", icon: "🗑️", correct: false }
+                ],
+                funFact: "¡Un solo árbol puede producir oxígeno para 2 personas durante todo un día!"
+            },
+            {
+                situation: "🐠 Los peces en el océano están enfermando porque hay mucha basura plástica. ¿Qué debemos hacer?",
+                actions: [
+                    { text: "Usar botellas reutilizables", icon: "🍼", correct: true },
+                    { text: "Tirar plástico al mar", icon: "🌊", correct: false },
+                    { text: "Limpiar las playas", icon: "🏖️", correct: true },
+                    { text: "Usar más bolsas de plástico", icon: "🛍️", correct: false }
+                ],
+                funFact: "¡Una tortuga marina puede vivir más de 100 años si no come plástico por error!"
+            },
+            {
+                situation: "🐝 Las abejas están desapareciendo y sin ellas no tendremos frutas ni flores. ¿Cómo las ayudamos?",
+                actions: [
+                    { text: "Plantar flores en el jardín", icon: "🌸", correct: true },
+                    { text: "Usar pesticidas tóxicos", icon: "☠️", correct: false },
+                    { text: "Crear casitas para abejas", icon: "🏠", correct: true },
+                    { text: "Cortar todas las flores", icon: "✂️", correct: false }
+                ],
+                funFact: "¡Las abejas visitan hasta 5,000 flores en un solo día para hacer miel!"
+            },
+            {
+                situation: "💧 El agua limpia se está acabando en muchos lugares del mundo. ¿Cómo podemos cuidar el agua?",
+                actions: [
+                    { text: "Cerrar la llave mientras te lavas los dientes", icon: "🚿", correct: true },
+                    { text: "Dejar el agua corriendo siempre", icon: "🚰", correct: false },
+                    { text: "Reparar las fugas de agua", icon: "🔧", correct: true },
+                    { text: "Contaminar ríos y lagos", icon: "🏭", correct: false }
+                ],
+                funFact: "¡Solo el 3% del agua en la Tierra es agua dulce que podemos beber!"
+            },
+            {
+                situation: "🌞 Podemos usar la energía del sol y el viento en lugar de contaminar. ¿Qué energías son limpias?",
+                actions: [
+                    { text: "Paneles solares", icon: "☀️", correct: true },
+                    { text: "Quemar carbón", icon: "⚫", correct: false },
+                    { text: "Molinos de viento", icon: "🌪️", correct: true },
+                    { text: "Humo de fábricas", icon: "🏭", correct: false }
+                ],
+                funFact: "¡El sol envía más energía a la Tierra en una hora que la que usa todo el mundo en un año!"
+            },
+            {
+                situation: "🦎 Muchos animales como las iguanas están perdiendo sus hogares. ¿Cómo protegemos la biodiversidad?",
+                actions: [
+                    { text: "Crear reservas naturales", icon: "🏞️", correct: true },
+                    { text: "Destruir sus hábitats", icon: "🚧", correct: false },
+                    { text: "No comprar animales exóticos", icon: "🚫", correct: true },
+                    { text: "Cazar animales en peligro", icon: "🎯", correct: false }
+                ],
+                funFact: "¡En la Tierra existen más de 8 millones de especies diferentes de animales y plantas!"
+            },
+            {
+                situation: "🌱 Podemos hacer que nuestra comida sea más amigable con el planeta. ¿Qué opciones son mejores?",
+                actions: [
+                    { text: "Cultivar un huerto en casa", icon: "🥕", correct: true },
+                    { text: "Desperdiciar mucha comida", icon: "🗑️", correct: false },
+                    { text: "Comer frutas y verduras locales", icon: "🍎", correct: true },
+                    { text: "Usar muchos envases de plástico", icon: "📦", correct: false }
+                ],
+                funFact: "¡Una semilla de tomate puede convertirse en una planta que produce 200 tomates!"
+            }
+        ];
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            setInterval(() => {
+                if (document.querySelectorAll('.particle').length < 10) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                    
+                    const colors = ['#00b894', '#74b9ff', '#fdcb6e', '#fd79a8'];
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    container.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 6000);
+                }
+            }, 500);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.game-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showWelcome() {
+            showScreen('welcome-screen');
+        }
+
+        function showInstructions() {
+            showScreen('instructions-screen');
+        }
+
+        function startGame() {
+            currentMission = 0;
+            score = 0;
+            achievements = 0;
+            planetHealth = 50;
+            missions = getRandomMissions(8);
+            showScreen('game-screen');
+            loadMission();
+        }
+
+        function getRandomMissions(count) {
+            const shuffled = [...missionBank].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function loadMission() {
+            if (currentMission >= missions.length) {
+                endGame();
+                return;
+            }
+
+            const mission = missions[currentMission];
+            document.getElementById('mission-text').textContent = mission.situation;
+            document.getElementById('current-mission').textContent = currentMission + 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('achievements').textContent = achievements;
+            
+            updatePlanetHealth();
+            updateProgress();
+            
+            // Generar acciones
+            const actionsContainer = document.getElementById('actions-container');
+            actionsContainer.innerHTML = '';
+            
+            mission.actions.forEach((action, index) => {
+                const card = document.createElement('div');
+                card.className = 'action-card';
+                card.innerHTML = `
+                    <span class="action-icon">${action.icon}</span>
+                    <div>${action.text}</div>
+                `;
+                card.onclick = () => selectAction(index);
+                actionsContainer.appendChild(card);
+            });
+
+            // Ocultar feedback
+            document.getElementById('feedback').style.display = 'none';
+        }
+
+        function selectAction(selectedIndex) {
+            const mission = missions[currentMission];
+            const action = mission.actions[selectedIndex];
+            const feedback = document.getElementById('feedback');
+            const earth = document.getElementById('game-earth');
+            const cards = document.querySelectorAll('.action-card');
+            
+            // Deshabilitar todas las cartas
+            cards.forEach((card, index) => {
+                card.style.pointerEvents = 'none';
+                
+                if (mission.actions[index].correct) {
+                    card.classList.add('correct');
+                } else {
+                    card.classList.add('incorrect');
+                }
+            });
+
+            if (action.correct) {
+                score += 15;
+                achievements += 1;
+                planetHealth = Math.min(100, planetHealth + 10);
+                
+                feedback.textContent = `¡Excelente decisión! 🌟 ${mission.funFact}`;
+                feedback.className = 'feedback success-feedback';
+                earth.textContent = '🌍✨';
+            } else {
+                planetHealth = Math.max(0, planetHealth - 5);
+                
+                feedback.textContent = `¡Ups! Esa no era la mejor opción. 🤔 ${mission.funFact}`;
+                feedback.className = 'feedback error-feedback';
+                earth.textContent = '🌍😔';
+            }
+
+            feedback.style.display = 'block';
+            updatePlanetHealth();
+            
+            setTimeout(() => {
+                earth.textContent = '🌍';
+                currentMission++;
+                loadMission();
+            }, 4000);
+        }
+
+        function updatePlanetHealth() {
+            const healthFill = document.getElementById('planet-health');
+            const healthPercentage = document.getElementById('health-percentage');
+            
+            healthFill.style.width = planetHealth + '%';
+            healthPercentage.textContent = planetHealth + '%';
+        }
+
+        function updateProgress() {
+            const progress = (currentMission / missions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function endGame() {
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-achievements').textContent = achievements;
+            document.getElementById('final-planet-health').style.width = planetHealth + '%';
